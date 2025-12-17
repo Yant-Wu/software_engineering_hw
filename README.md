@@ -1,34 +1,948 @@
-# software_engineering_hw
-## 健康生活管家
-### Functional Requirements
-#### User Story 1: AI 智能健康飲食管理系統
-作為一個注重健康飲食的人，使用者希望 App 能根據他的飲食習慣、健康目標和身體狀況，AI 智能推薦個性化的健康餐菜單，並能掃描食物辨識營養成分，同時自動生成購物清單，還能追蹤記錄使用者每日的飲食數據並提供改善建議，讓使用者可以全方位管理他的健康飲食。
-##### 任務清單
-- Task 1.1 (24–32 hours): 設計用戶資料輸入介面，包含飲食習慣、健康目標、過敏史、身體狀況等。
-- Task 1.2 (40–60 hours): 建立健康餐食資料庫，包含菜餚資訊、熱量、營養成分、食材等完整資訊。
-- Task 1.3 (32–48 hours): 整合 AI 圖像識別 API 或開發相關模型，用於食物辨識和熱量計算。
-- Task 1.4 (60–80 hours): 開發 AI 推薦引擎，根據用戶輸入生成個性化菜單。
-- Task 1.5 (24–32 hours): 設計菜單顯示介面，包含菜餚圖片、描述、營養資訊和熱量數據。
-- Task 1.6 (40–56 hours): 實作菜單智能調整功能，根據用戶健康數據變化動態更新菜單。
-- Task 1.7 (56–80 hours): 開發食物掃描辨識系統，包含拍照介面、多重食物識別、模糊識別、熱量及營養成分精準計算與單位換算功能。
-- Task 1.8 (32–48 hours): 設計飲食數據儲存結構並開發數據記錄功能，支援掃描結果、手動輸入及長期數據追蹤。
-- Task 1.9 (32–40 hours): 實作圖表生成功能，視覺化呈現每日熱量和營養攝取趨勢。
-- Task 1.10 (48–64 hours): 開發飲食趨勢分析和改善建議生成邏輯。
-- Task 1.11 (32–48 hours): 開發購物清單系統，包含自動生成邏輯、智能分類功能（例如：蔬菜、肉類、調味料）及分享功能。
-### Non-Functional Requirements
-- Task 2.1 性能優化 (40–56 hours): 確保 AI 推薦、食物掃描等核心功能的回應時間在可接受範圍內（3–5 秒）。
-- Task 2.2 安全性與隱私保護 (48–72 hours): 對用戶敏感數據（如過敏史）進行加密儲存與傳輸。
-- Task 2.3 使用者體驗與易用性 (32–48 hours): 設計直觀易懂的 UI/UX，並提供首次使用引導。
-- Task 2.4 可靠性與錯誤處理 (40–60 hours): 建立完善的錯誤處理與日誌系統，確保 App 穩定運行。
-- Task 2.5 相容性 (24–40 hours): 支援主流的 iOS 與 Android 作業系統版本及不同螢幕尺寸。
-### 測試案例 (Test Cases)
-| 測試案例編號 | 測試功能項目 | 輸入 (Input) | 預期輸出 (Expected Output) |
-|---|---|---|---|
-| TC-01 | 用戶資料輸入與儲存 | 健康目標: 減重, 飲食習慣: 低碳水, 過敏史: 花生。 | 1. 資料成功儲存。<br>2. 重新開啟 App 後資料依然存在。 |
-| TC-02 | AI 菜單推薦 | 使用者請求生成晚餐菜單。 | 1. 系統在 8 秒內生成菜單。<br>2. 菜單符合低碳水原則。<br>3. 菜單中不包含任何花生或其製品。 |
-| TC-03 | 食物掃描辨識 | 拍攝一顆中等大小的蘋果。 | 1. 成功辨識為「蘋果」。<br>2. 顯示預估的熱量與營養成分。<br>3. 可成功將此筆紀錄加入飲食日誌。 |
-| TC-04 | 購物清單生成 | 基於包含「雞胸肉沙拉」和「烤鮭魚」的菜單。 | 1. 自動生成包含雞胸肉、生菜、鮭魚等食材的清單。<br>2. 清單內容已按「蔬菜」、「肉類」等分類。 |
-### Stakeholders
+# 健康生活管家 Software Design Document (SDD)
+
+## 1. Introduction
+
+- **Purpose**
+  本文件為健康生活管家應用程式的軟體設計文件（SDD），旨在詳細闡述系統架構、功能模組、資料庫設計、技術棧、非功能需求、測試策略與部署運維，作為開發、測試、維護的技術參考基準。
+
+- **Scope**  
+  系統提供 AI 智能健康飲食管理、食物掃描辨識與營養分析、個人化菜單推薦與購物清單生成、每日飲食追蹤與建議、運動與睡眠整合、提醒與通知等；涵蓋使用者資料管理、餐食資料庫、圖像辨識與 NLP、行為分析、報表與目標管理。
+
+- **References**
+  - 公開營養資料來源（如衛福部食物營養成分資料集）  
+  - 作業系統與框架官方文件（Android/iOS、Node.js、Python、PostgreSQL）
+
+## 2. System Overview
+
+- **System Description**  
+  健康生活管家是一款以 AI 為核心的行動應用程式，透過使用者的健康資料與飲食行為進行分析，提供個人化餐單、即時掃描辨識食物營養、每日飲食追蹤與建議、並生成改善建議與目標管理。系統包含行動端 App、後端服務、資料庫、AI 模型、第三方 API 整合，支援多語與本地化。
+
+- **Design Goals**  
+  - 精準個人化推薦（餐單、營養比例、改善建議）  
+  - 高效食物辨識與營養計算  
+  - 資料隱私與安全保護  
+  - 高可用性與可擴展性  
+  - 直覺易用的使用者介面  
+  - 清晰任務模組化與可維護性
+
+- **Architecture Summary**  
+  採用分層式微服務架構：  
+  - 客戶端（iOS/Android）：UI/UX、拍照掃描、同步、通知  
+  - API Gateway：驗證、路由、速率限制  
+  - 應用服務：使用者管理、餐單推薦、掃描辨識、追蹤與建議、報表  
+  - AI 服務：圖像辨識、營養推論、個人化推薦模型  
+  - 資料層：關聯式資料庫（PostgreSQL/MySQL）、文件儲存
+  - 整合：第三方食材 API、推播服務
+
+```mermaid
+flowchart LR
+  A["Mobile App (iOS/Android)"] --> B[API Gateway]
+  B --> C1[User Service]
+  B --> C2[Diet & Menu Service]
+  B --> C3[Scan & Recognition Service]
+  B --> C4[Tracking & Advice Service]
+  B --> C5[Report Service]
+  C2 --> D1[(Relational DB)]
+  C3 --> D2[(Object Storage)]
+  C2 --> D3[AI Recommendation]
+  C3 --> D4[AI Vision]
+  B --> E[Third-party APIs]
+  B --> F[Auth/Rate Limit]
+```
+
+## 3. Architectural Design
+
+- **Component Breakdown**  
+  - 使用者管理（User Service）：帳號、個資、健康目標、過敏史、偏好、設定  
+  - 餐食資料庫（Diet DB Service）：食材、營養成分、熱量、分類  
+  - AI 推薦（AI Recommendation Service）：依個人健康狀況與目標生成菜單  
+  - 食物掃描辨識（Vision Service）：相機掃描、影像分類、NLP  
+  - 追蹤與建議（Tracking & Advice）：每日飲食記錄、趨勢分析、行為建議  
+  - 通知與提醒（Notification）：餐時提醒、目標達成
+  - 報表（Report）：週/月報表、KPI 指標、目標進度  
+  - 系統管理（Admin）：權限、審計、設定、監控
+
+- **Technology Stack**  
+  - 前端：Flutter/React Native；支援 iOS/Android  
+  - 後端：Node.js（NestJS/Express）或 Python（FastAPI）
+  - AI：Python、PyTorch/TensorFlow；LLM/NLP 模型
+  - 資料庫：PostgreSQL、Redis
+  - 基礎設施：Docker、Kubernetes、CI/CD、API Gateway
+  - 監控：Prometheus、Grafana、ELK、Sentry
+
+```mermaid
+graph TD
+  subgraph Client
+    M[Mobile UI]
+  end
+  subgraph Backend
+    G[Gateway]
+    U[User svc]
+    D[Diet svc]
+    R[Recommend svc]
+    V[Vision svc]
+    T[Tracking svc]
+    N[Notification svc]
+    P[Report svc]
+  end
+  subgraph Data
+    DB[(PostgreSQL)]
+    CA[(Redis)]
+  end
+  M-->G
+  G-->U
+  G-->D
+  G-->R
+  G-->V
+  G-->T
+  G-->N
+  G-->P
+  U-->DB
+  D-->DB
+  T-->DB
+  R-->CA
+```
+
+- **Functional Requirements**
+  - Task 1.1（用戶資料輸入介面）
+  - Task 1.2（建立健康餐食資料庫）
+  - Task 1.3（個性化菜單推薦）
+  - Task 1.4（掃描食物辨識營養成分）
+  - Task 1.5（追蹤與建議）
+  - Task 1.6（生成購物清單）
+  - Task 1.7（每日飲食數據追蹤）
+  - Task 1.8（提醒與通知）
+  - Task 1.9（報表）
+  - Task 1.10（目標管理）
+- **Non-Functional Requirements**
+  - Task 2.1（性能優化）
+  - Task 2.2（安全性與隱私保護）
+  - Task 2.3（使用者體驗與易用性）
+  - Task 2.4（可維護性）
+  - Task 2.5（可擴展性）
+
+## 4. Detailed Design
+
+### 4.1 使用者與健康資料模組
+
+- 任務對應：**Task 1.1（用戶資料輸入介面）**
+- 功能：建立使用者資料（飲食習慣、健康目標、過敏史、身體狀況）、偏好設定
+- 輸入：使用者表單資料；身高、體重、年齡、性別、活動量、疾病史
+- 輸出：使用者設定檔；BMI 計算結果；偏好標籤
+- 流程：
+  1. UI 表單輸入 → 基本驗證
+  2. 後端計算 BMI，生成健康目標建議
+  3. 儲存至資料庫 `users`, `user_profiles`, `preferences`
+- 驗收標準：
+  - 必填欄位驗證與錯誤提示完整
+  - 成功儲存與同步跨裝置
+  - 建議值計算正確（對照公式）
+- 類別圖：
+
+```mermaid
+---
+config:
+  layout: elk
+---
+flowchart TD
+    Start([使用者開始註冊]) --> Input[輸入基本資料]
+    Input --> ValidateBasic{資料格式正確?}
+    
+    ValidateBasic -->|否| ShowError1[顯示錯誤訊息]
+    ShowError1 --> Input
+    
+    ValidateBasic -->|是| InputHealth[輸入健康目標]
+    InputHealth --> SelectGoal[選擇目標類型]
+    SelectGoal --> InputActivity[輸入活動量]
+    
+    InputActivity --> InputAllergy[輸入過敏史]
+    InputAllergy --> InputPref[設定飲食偏好]
+    
+    InputPref --> ValidateComplete{必填欄位完整?}
+    ValidateComplete -->|否| ShowError2[提示缺少欄位]
+    ShowError2 --> InputHealth
+    
+    ValidateComplete -->|是| CalcBMI[計算BMI]
+    CalcBMI --> CalcTDEE[計算每日建議熱量]
+    CalcTDEE --> GenRecommend[生成初步建議]
+    
+    GenRecommend --> SaveDB[(儲存至資料庫)]
+    SaveDB --> SyncCheck{需要跨裝置同步?}
+    
+    SyncCheck -->|是| SyncCloud[同步至雲端]
+    SyncCloud --> ShowSuccess[顯示成功訊息]
+    
+    SyncCheck -->|否| ShowSuccess
+    ShowSuccess --> End([完成註冊])
+```
+
+### 4.2 餐食資料庫模組
+
+- 任務對應：**Task 1.2（建立健康餐食資料庫）**
+- 功能：維護食材、營養成分、熱量與分類
+- 輸入：食材資料；外部營養資料集
+- 輸出：可查詢之食材/營養 API
+- 流程：
+  1. 資料匯入與清洗
+  2. 建立索引與分類標籤（過敏、素食、低醣等）
+  3. 提供查詢端點（以名稱/條碼/成分）
+- 驗收標準：
+  - 資料覆蓋率 ≥ 95% 常見食材
+  - 查詢延遲 ≤ 200ms（快取）
+  - 萬用過敏標籤一致性
+
+```mermaid
+classDiagram
+    class FoodDatabaseModule {
+        +String dbVersion
+        +searchFood(String query)
+        +getFoodById(String id)
+        +importData(File csvFile)
+        +updateNutrients()
+        +addFoodItem()
+    }
+    
+    class Food {
+        +String foodId
+        +String name
+        +String category
+        +NutrientProfile nutrients
+        +List tags
+        +Image image
+        +getCalories()
+        +checkAllergy()
+    }
+    
+    class NutrientProfile {
+        +float calories
+        +float protein
+        +float fat
+        +float carbohydrates
+        +float fiber
+        +float sodium
+        +float sugar
+        +getPerUnit()
+    }
+    
+    class Ingredient {
+        +String ingredientId
+        +String name
+        +float defaultAmount
+        +String unit
+    }
+    
+    class Dish {
+        +String dishId
+        +String name
+        +List ingredients
+        +NutrientProfile totalNutrients
+        +String description
+        +calculateNutrients()
+    }
+    
+    class Tag {
+        +String tagName
+        +String tagType
+    }
+    
+    class DataImporter {
+        +validateCSV()
+        +parseData()
+        +cleanData()
+        +batchInsert()
+    }
+    
+    class QueryIndex {
+        +createIndex()
+        +optimizeQuery()
+        +cacheResult()
+    }
+    
+    FoodDatabaseModule --> Food
+    FoodDatabaseModule --> DataImporter
+    FoodDatabaseModule --> QueryIndex
+    Food --> NutrientProfile
+    Food --> Tag
+    Dish --> Ingredient
+    Dish --> NutrientProfile
+    Ingredient --|> Food
+```
+
+### 4.3 AI 個人化推薦模組
+
+- 任務對應：**Task 1.3（個性化菜單推薦）、Task 1.5（追蹤與建議）**
+- 功能：依使用者目標與狀況生成菜單；持續優化建議
+- 輸入：使用者檔案、偏好、歷史飲食記錄、營養資料庫
+- 輸出：日/週菜單、營養配比、熱量目標達成度
+- 流程：
+  1. 特徵工程（健康目標、過敏、偏好、活動量）
+  2. 模型推論（Rule-based + ML Ranking）
+  3. 生成菜單
+  4. 追蹤每日記錄，調整建議
+- 驗收標準：
+  - 達成目標的推薦正確性（A/B 測試提升 ≥ 10%）
+  - 避免過敏食材
+  - 使用者滿意度調查達標
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant UI
+    participant AIModule as AI推薦模組
+    participant UserProfile as 用戶資料
+    participant FoodDB as 餐食資料庫
+    participant Algorithm as 推薦演算法
+    
+    User->>UI: 請求產生菜單
+    UI->>AIModule: requestMenu()
+    AIModule->>UserProfile: getUserData()
+    UserProfile-->>AIModule: 健康目標、過敏史、偏好
+    
+    AIModule->>AIModule: calculateTDEE()
+    Note over AIModule: 計算每日建議熱量
+    
+    AIModule->>FoodDB: queryAvailableFoods(constraints)
+    Note over FoodDB: 篩選符合條件的餐點
+    FoodDB-->>AIModule: 候選食物清單
+    
+    AIModule->>Algorithm: generateMenuCombinations()
+    Note over Algorithm: 組合菜單並排序
+    Algorithm->>Algorithm: rankByObjective()
+    Algorithm-->>AIModule: 推薦菜單 (top 3)
+    
+    AIModule->>AIModule: validateAllergens()
+    AIModule-->>UI: 個性化菜單
+    UI-->>User: 顯示推薦菜單
+    
+    alt 使用者接受
+        User->>UI: 確認使用菜單
+        UI->>AIModule: saveMenuSelection()
+        AIModule->>UserProfile: recordSelection()
+    else 使用者調整
+        User->>UI: 修改菜單項目
+        UI->>AIModule: adjustMenu()
+        AIModule->>Algorithm: regenerate()
+    end
+```
+
+### 4.4 食物掃描與營養辨識模組
+
+- 任務對應：**Task 1.4（掃描食物辨識營養成分）**
+- 功能：影像/條碼掃描，辨識食物與營養
+- 輸入：相機影像、條碼文字、包裝標示 OCR
+- 輸出：辨識食物名稱、營養成分、份量估計
+- 流程：
+  1. 影像前處理 → 分類/偵測模型
+  2. 條碼解析 → 產品資料匹配
+  3. OCR → 營養標示抽取 → NLP 正規化
+  4. 輸入資料庫並關聯菜餚/食材
+- 驗收標準：
+  - 辨識準確率 ≥ 90%（常見食物集）
+  - 條碼解析成功率 ≥ 95%
+  - OCR/NLP 誤差率 ≤ 5%
+
+```mermaid
+stateDiagram-v2
+    [*] --> 待機狀態
+    
+    待機狀態 --> 請求權限: 開啟掃描
+    請求權限 --> 權限被拒: 權限拒絕
+    權限被拒 --> [*]
+    
+    請求權限 --> 準備拍攝: 權限允許
+    準備拍攝 --> 拍攝中: 按下快門
+    拍攝中 --> 影像處理: 拍攝完成
+    
+    影像處理 --> 網路檢查: 前處理完成
+    網路檢查 --> 離線模式: 無網路
+    離線模式 --> 手動輸入
+    
+    網路檢查 --> AI辨識: 有網路
+    AI辨識 --> 高信心結果: 信心分數 >= 0.9
+    AI辨識 --> 中信心結果: 信心分數 0.6-0.9
+    AI辨識 --> 低信心結果: 信心分數 < 0.6
+    
+    高信心結果 --> 顯示結果
+    中信心結果 --> 候選清單: 顯示選項
+    候選清單 --> 顯示結果: 使用者選擇
+    低信心結果 --> 手動輸入: 辨識失敗
+    
+    手動輸入 --> 顯示結果: 搜尋完成
+    
+    顯示結果 --> 調整份量: 檢視結果
+    調整份量 --> 調整份量: 修改份量
+    調整份量 --> 儲存紀錄: 確認儲存
+    
+    儲存紀錄 --> 完成狀態: 儲存成功
+    完成狀態 --> [*]
+    
+    note right of AI辨識
+        根據信心分數
+        分為三個路徑
+    end note
+    
+    note right of 調整份量
+        使用者可持續
+        調整直到滿意
+    end note
+```
+
+### 4.5 購物清單與電商整合模組
+
+- 任務對應：**Task 1.6（生成購物清單）**
+- 功能：依菜單生成可購買之食材清單；庫存與替代品
+- 輸入：菜單、家中庫存、偏好（品牌/價格）
+- 輸出：購物清單（分店/電商）、替代建議
+- 流程：
+  1. 菜單→食材分解→合併週期需求
+  2. 對照庫存與替代品表
+  3. 產出清單並可一鍵加入電商購物車（API）
+- 驗收標準：
+  - 清單覆蓋率 ≥ 98%
+  - 替代品建議符合過敏/偏好約束
+
+```mermaid
+---
+config:
+  layout: elk
+---
+flowchart TD
+    Start([使用者選擇菜單]) --> ParseMenu[解析菜單內容]
+    ParseMenu --> ExtractIngredients[提取所需食材]
+    
+    ExtractIngredients --> MergeItems[合併重複食材]
+    MergeItems --> UnitConversion[單位標準化換算]
+    
+    UnitConversion --> CheckInventory{檢查庫存?}
+    CheckInventory -->|是| LoadInventory[載入庫存資料]
+    LoadInventory --> CompareStock[比對庫存量]
+    CompareStock --> CalculateNeeded[計算實際需求量]
+    CalculateNeeded --> Classify
+    
+    CheckInventory -->|否| Classify[智能分類食材]
+    
+    Classify --> CategoryLoop{處理所有類別?}
+    CategoryLoop -->|否| AssignCategory[分配至適當類別]
+    AssignCategory --> CheckSubstitute{需要替代品?}
+    
+    CheckSubstitute -->|是| FindAlternatives[查詢替代食材]
+    FindAlternatives --> RankSubstitutes[依偏好排序]
+    RankSubstitutes --> AddSuggestions[加入建議清單]
+    AddSuggestions --> CategoryLoop
+    
+    CheckSubstitute -->|否| CategoryLoop
+    
+    CategoryLoop -->|是| GenerateList[生成購物清單]
+    GenerateList --> UserReview[使用者檢視]
+    
+    UserReview --> UserAction{使用者操作}
+    
+    UserAction -->|編輯項目| ModifyItem[修改清單項目]
+    ModifyItem --> UserReview
+    
+    UserAction -->|分享清單| ShareOption{選擇分享方式}
+    ShareOption -->|連結| GenLink[生成分享連結]
+    GenLink --> SetupSync[設定即時同步]
+    SetupSync --> NotifyCollaborators[通知協作者]
+    NotifyCollaborators --> SaveList
+    
+    ShareOption -->|匯出| ExportFormat{選擇匯出格式}
+    ExportFormat -->|PDF| ExportPDF[匯出為PDF]
+    ExportFormat -->|Excel| ExportExcel[匯出為Excel]
+    ExportFormat -->|文字| ExportText[匯出為純文字]
+    ExportPDF --> SaveList
+    ExportExcel --> SaveList
+    ExportText --> SaveList
+    
+    UserAction -->|連接電商| SelectEcommerce[選擇電商平台]
+    SelectEcommerce --> APIConnect[連接API]
+    APIConnect --> SyncPrice[同步價格資訊]
+    SyncPrice --> AddToCart[加入購物車]
+    AddToCart --> SaveList
+    
+    UserAction -->|確認完成| SaveList[(儲存購物清單)]
+    SaveList --> End([完成])
+```
+
+### 4.6 飲食追蹤與建議模組
+
+- 任務對應：**Task 1.7（每日飲食數據追蹤）、Task 1.5（改善建議）**
+- 功能：記錄每日飲食、營養匯總、趨勢分析、健康提醒
+- 輸入：手動記錄、掃描辨識結果、第三方裝置資料
+- 輸出：每日/週/月營養與熱量報表；建議
+- 流程：
+  1. 記錄事件（早餐/午餐/晚餐/零食）
+  2. 營養匯總與目標對齊
+  3. 偏差分析 → 推送建議/提醒
+- 驗收標準：
+  - 記錄完成率與一致性
+  - 建議對偏差具體有效（回歸/迴圈測試）
+  - 通知推送可靠
+
+```mermaid
+classDiagram
+    class DietTrackingModule {
+        +String userId
+        +Date trackingDate
+        +recordMeal(MealRecord meal)
+        +getDailyStats()
+        +getWeeklyTrend()
+        +generateSuggestions()
+    }
+    
+    class MealRecord {
+        +String recordId
+        +String mealType
+        +Date timestamp
+        +List foods
+        +Image photo
+        +NutritionSummary nutrition
+        +calculateTotal()
+    }
+    
+    class NutritionSummary {
+        +float totalCalories
+        +float protein
+        +float fat
+        +float carbohydrates
+        +float fiber
+        +float sodium
+        +compareWithGoal()
+    }
+    
+    class DailyLog {
+        +Date date
+        +List meals
+        +float waterIntake
+        +float exercise
+        +getDailyTotal()
+        +checkGoalAchievement()
+    }
+    
+    class TrendAnalyzer {
+        +analyzeWeekly()
+        +analyzeMonthly()
+        +detectPatterns()
+        +identifyIssues()
+    }
+    
+    class SuggestionEngine {
+        +List rules
+        +generateAdvice()
+        +prioritizeSuggestions()
+        +checkUserPreferences()
+    }
+    
+    class GoalManager {
+        +HealthGoal currentGoal
+        +float targetCalories
+        +MacroRatio targetRatio
+        +adjustGoal()
+        +trackProgress()
+    }
+    
+    class ReportGenerator {
+        +generateDailyReport()
+        +generateWeeklyReport()
+        +generateMonthlyReport()
+        +exportData()
+    }
+    
+    DietTrackingModule --> MealRecord
+    DietTrackingModule --> DailyLog
+    DietTrackingModule --> TrendAnalyzer
+    DietTrackingModule --> SuggestionEngine
+    DietTrackingModule --> GoalManager
+    DietTrackingModule --> ReportGenerator
+    MealRecord --> NutritionSummary
+    DailyLog --> MealRecord
+    TrendAnalyzer --> DailyLog
+    SuggestionEngine --> TrendAnalyzer
+    ReportGenerator --> DailyLog
+```
+
+### 4.7 通知與提醒模組
+
+- 任務對應：**Task 1.8（提醒與通知）**
+- 功能：餐時提醒、補充水分、達標提示、購物提醒
+- 輸入：使用者目標、行程、時區
+- 輸出：App 內通知、推播
+- 流程：
+  1. 設定排程與條件
+  2. 推播服務
+  3. 點擊行動（開啟菜單/清單/記錄）
+- 驗收標準：
+  - 準時送達率 ≥ 99%
+  - 不重複或騷擾（頻率控制與退訂）
+  - 行動轉換率 KPI 追蹤
+
+```mermaid
+stateDiagram-v2
+    [*] --> 未排程
+    
+    未排程 --> 已排程: 建立通知排程
+    已排程 --> 等待觸發: 條件設定完成
+    
+    等待觸發 --> 檢查條件: 時間到達
+    檢查條件 --> 準備發送: 條件滿足
+    檢查條件 --> 等待觸發: 條件不滿足
+    
+    準備發送 --> 發送中: 開始推播
+    發送中 --> 已送達: 推播成功
+    發送中 --> 發送失敗: 網路錯誤/裝置離線
+    
+    發送失敗 --> 等待重試: 設定重試
+    等待重試 --> 發送中: 重試時間到
+    等待重試 --> 已取消: 超過重試次數
+    
+    已送達 --> 已讀取: 使用者點擊
+    已送達 --> 已過期: 超過有效期
+    
+    已讀取 --> 已處理: 執行動作
+    已讀取 --> 已關閉: 忽略通知
+    
+    已排程 --> 已取消: 使用者取消
+    等待觸發 --> 已取消: 使用者取消
+    準備發送 --> 已取消: 使用者取消
+    
+    已處理 --> [*]
+    已關閉 --> [*]
+    已過期 --> [*]
+    已取消 --> [*]
+    
+    note right of 檢查條件
+        條件包括：
+        - 使用者偏好時間
+        - 免打擾時段
+        - 目標達成狀態
+    end note
+    
+    note right of 發送失敗
+        最多重試3次
+        間隔時間遞增
+    end note
+```
+
+### 4.8 報表與目標管理模組
+
+- 任務對應：**Task 1.9（報表）、Task 1.10（目標管理）**
+- 功能：週/月報表、KPI 指標、目標設定與進度追蹤
+- 輸入：歷史記錄、目標、偏好
+- 輸出：圖表（熱量、營養價值、達標率）、目標狀態、建議
+- 流程：
+  1. 聚合計算與指標生成
+  2. 視覺化（圖表元件）
+  3. 目標與提醒耦合
+- 驗收標準：
+  - 指標計算正確（交叉驗證）
+  - 圖表載入 < 1s（快取）
+  - 使用者可操作性良好
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant UI
+    participant ReportModule as 報表模組
+    participant DataStore as 資料儲存
+    participant ChartGen as 圖表生成器
+    participant GoalTracker as 目標追蹤器
+    participant Export as 匯出服務
+    
+    User->>UI: 請求查看報表
+    UI->>ReportModule: generateReport(type, dateRange)
+    
+    ReportModule->>DataStore: queryMealRecords(dateRange)
+    DataStore-->>ReportModule: 飲食記錄清單
+    
+    ReportModule->>DataStore: queryHealthMetrics(dateRange)
+    DataStore-->>ReportModule: 健康指標數據
+    
+    ReportModule->>ReportModule: aggregateData()
+    Note over ReportModule: 彙整統計數據
+    
+    ReportModule->>GoalTracker: getGoalProgress()
+    GoalTracker->>GoalTracker: calculateProgress()
+    GoalTracker-->>ReportModule: 目標達成度
+    
+    ReportModule->>ChartGen: createCharts(data)
+    ChartGen->>ChartGen: generateLineChart()
+    ChartGen->>ChartGen: generateBarChart()
+    ChartGen->>ChartGen: generatePieChart()
+    ChartGen-->>ReportModule: 圖表集合
+    
+    ReportModule->>ReportModule: formatReport()
+    ReportModule-->>UI: 完整報表
+    UI-->>User: 顯示報表內容
+    
+    alt 使用者匯出報表
+        User->>UI: 點擊匯出
+        UI->>ReportModule: exportReport(format)
+        ReportModule->>Export: export(data, format)
+        
+        alt PDF格式
+            Export->>Export: generatePDF()
+            Export-->>ReportModule: PDF檔案
+        else Excel格式
+            Export->>Export: generateExcel()
+            Export-->>ReportModule: Excel檔案
+        else 圖片格式
+            Export->>Export: generateImage()
+            Export-->>ReportModule: 圖片檔案
+        end
+        
+        ReportModule-->>UI: 下載連結
+        UI-->>User: 提供下載
+    end
+    
+    alt 調整目標
+        User->>UI: 修改健康目標
+        UI->>GoalTracker: updateGoal(newGoal)
+        GoalTracker->>DataStore: saveGoal()
+        DataStore-->>GoalTracker: 儲存成功
+        GoalTracker-->>UI: 目標已更新
+        UI-->>User: 顯示確認訊息
+    end
+```
+
+## 5. Database Design
+
+```mermaid
+---
+config:
+  layout: elk
+---
+erDiagram
+    users ||--o| user_profiles : "擁有個人檔案"
+    users ||--o| preferences : "設定偏好"
+    users ||--o{ menus : "建立菜單"
+    users ||--o{ shopping_lists : "產生清單"
+    users ||--o{ consumption_logs : "記錄飲食"
+    users ||--o{ recommendations : "獲得推薦"
+    users ||--o{ goals : "設定目標"
+    users ||--o{ reports : "查看報告"
+    users ||--o{ notifications : "收到通知"
+    
+    dishes ||--o{ consumption_logs : "記錄為飲食"
+    dishes }o--o{ menus : "加入菜單"
+    ingredients }o--o{ consumption_logs : "記錄食材"
+    menus ||--o{ recommendations : "產生推薦"
+    menus ||--o{ shopping_lists : "生成清單"
+    
+    users {
+        int id
+        string email
+        string password_hash
+        string status
+        datetime created_at
+    }
+    
+    user_profiles {
+        int user_id
+        float height
+        float weight
+        int age
+        string gender
+        string activity_level
+        json allergies
+        json medical_history
+        float bmi
+    }
+    
+    preferences {
+        int user_id
+        string diet_type
+        json cuisine_prefs
+        string budget_range
+        json notification_settings
+    }
+    
+    ingredients {
+        int id
+        string name
+        string barcode
+        json allergens
+        json nutrition
+        json tags
+    }
+    
+    dishes {
+        int id
+        string name
+        string category
+        json recipe
+        json nutrition
+        float calories
+        json tags
+    }
+    
+    menus {
+        int id
+        int user_id
+        date date
+        json items
+        float total_calories
+        json macro_ratio
+    }
+    
+    shopping_lists {
+        int id
+        int user_id
+        int menu_id
+        string week
+        json items
+        string status
+    }
+    
+    consumption_logs {
+        int id
+        int user_id
+        datetime time
+        string meal_type
+        string source
+        int dish_id
+        json ingredient_ids
+        float portion
+        json nutrition
+    }
+    
+    recommendations {
+        int id
+        int user_id
+        date date
+        json context
+        int menu_id
+        float score
+        string type
+    }
+    
+    goals {
+        int id
+        int user_id
+        string type
+        float target_value
+        date start_date
+        date end_date
+        string status
+        float current_value
+    }
+    
+    reports {
+        int id
+        int user_id
+        string period
+        json kpis
+        text summary
+        datetime generated_at
+    }
+    
+    notifications {
+        int id
+        int user_id
+        string type
+        json payload
+        datetime scheduled_at
+        datetime sent_at
+        string status
+    }
+```
+
+## 6. Non-Functional Requirements
+
+- **性能（Performance）**
+  - 主要 API 延遲 ≤ 300ms；掃描辨識端到端 ≤ 2s
+  - 每日活躍 10k 用戶下維持 ≥ 99.9% 可用性
+  - 資料庫查詢優化與索引完整；批次作業離峰執行
+
+- **安全（Security）**
+  - OAuth2/OpenID Connect；JWT；雙因素驗證（選擇性）
+  - 靜態/傳輸加密（AES-256、TLS 1.2+）；秘密管理（Vault/KMS）
+  - RBAC 權限；審核日誌；GDPR/CCPA 合規；隱私遮罩
+
+- **可用性（Usability**）
+  - 無障礙 AA 級（文字放大、色彩對比、語音輔助）
+  - 專注於低認知負擔之流程與介面設計
+  - 離線模式支援基本功能（資料緩存、同步）
+  - 國際化與在地化（繁中優先）
+
+- **維護性（Maintainability）**
+  - 程式碼規範（ESLint/Black）；單元測試覆蓋率 ≥ 80%
+  - 版本化管理
+  - 自動化 CI/CD 流程
+  - 集中化日誌與監控（ELK、Prometheus/Grafana）
+
+- **可擴展性（Scalability）**
+  - 水平擴展（K8s HPA）
+  - 快取與排隊（Redis/Queue）；影像與模型分離部署
+  - 分割讀寫與資料庫分片
+
+```mermaid
+mindmap
+  root(("非功能性需求"))
+    性能優化
+      快取
+      索引
+      背景作業
+    安全
+      OAuth2
+      加密
+      RBAC
+    可用性
+      i18n
+      無障礙
+      離線
+    維護性
+      日誌
+      測試覆蓋
+      CI/CD
+    擴展性
+      微服務
+      事件總線
+      水平擴展
+```
+
+## 7. Testing Strategy
+
+- 測試層級
+  - 單元測試：服務邏輯、模型推論、資料庫操作
+  - 整合測試：API 合約、跨服務流程（推薦→清單→通知）
+  - 端到端測試（E2E）：使用者場景（建立目標→掃描→生成菜單→追蹤→報表）
+  - 性能測試：負載、壓力、延遲監控
+  - 安全測試：權限驗證、資料洩漏檢查
+
+- 測試案例
+  1. 用戶資料建立與驗證  
+     - 前置：新用戶  
+     - 步驟：填寫資料→提交→查詢 profile  
+     - 期望：必填驗證、BMI正確、資料持久化成功
+  2. 菜單推薦避開過敏食材  
+     - 前置：設定花生過敏  
+     - 步驟：生成週菜單  
+     - 期望：菜單中不含花生/其衍生物
+  3. 食物掃描條碼解析  
+     - 前置：已知產品條碼  
+     - 步驟：掃描→比對資料庫  
+     - 期望：返回正確產品與營養
+  4. 購物清單生成與電商下單  
+     - 前置：既有菜單與庫存  
+     - 步驟：生成清單→推送到電商  
+     - 期望：清單完整且下單 API 成功
+  5. 每日飲食追蹤與建議  
+     - 前置：連續三天高糖攝取  
+     - 步驟：匯總→生成建議→通知  
+     - 期望：建議具體、通知送達、可操作連結
+  6. 報表與目標達成率  
+     - 前置：一週完整記錄  
+     - 步驟：生成週報表  
+     - 期望：數據一致、載入迅速、圖表正確
+  7. 非功能測試（性能/安全）  
+     - 負載 1k ≤ 300ms  
+     - 權限測試：未授權請求被拒
+     - 資料加密驗證
+
+## 8. Stakeholders & Team Structure
+
+- **Stakeholders**
+
 | 角色 | 職責與說明 |
 |---|---|
 | 系統使用者 | 注重健康飲食、希望透過 App 管理個人飲食習慣與健康的最終用戶。他們是系統服務的主要對象，其需求和反饋是專案成功的關鍵。 |
@@ -37,322 +951,86 @@
 | 系統開發者 | 負責 App 所有功能開發與實作的團隊成員，包含前後端程式設計、AI 模型整合與資料庫建構等。他們需要將需求轉化為實際的應用程式功能。 |
 | 客服人員 | 作為使用者與開發團隊之間的橋樑，負責收集、整理並回覆使用者的問題、建議與錯誤回報，協助提升使用者體驗。 |
 | 投資者 | 提供專案開發所需經費的個人或機構。他們關注專案的開發進度、市場潛力與最終的投資回報率。 |
-### 小組成員
-1. **B1243017 吳彥廷**
-	- 任務 1.1：24–32 小時
-		- 功能目標：建立使用者個人檔案設定頁面，收集並驗證使用者的基本生理數據、飲食偏好與健康目標，作為AI推薦系統的基礎參數。
-		- 輸入：
-			- 使用者基本資料：年齡、性別、身高、體重、活動量等級。
-			- 健康目標：減重、增肌、維持體重、特定飲食法（如生酮、低碳）。
-			- 飲食限制：過敏原（花生、海鮮等）、素食偏好。
-		- 處理流程：
-			- 表單驗證：檢查數值合理性（如身高體重不可為負）、必填欄位檢查。
-			- 數據標準化：將不同單位的輸入（如公制/英制）轉換為系統標準格式。
-			- 狀態儲存：將驗證後的資料封裝並呼叫後端API進行儲存或更新。
-		- 輸出：
-			- 完整的 UserProfile 物件。
-			- UI回饋：儲存成功提示或錯誤訊息。
-		- 系統整合與品質考量：
-			- 需與 Task 1.4 (AI推薦引擎) 的輸入格式對齊。
-			- 確保個資傳輸過程符合 Task 2.2 的安全加密規範。
-		- 非功能需求：
-			- 易用性：表單填寫完成率需達 95% 以上，避免過多繁瑣步驟。
-		- 驗收標準：
-			- 使用者能順利完成所有欄位填寫並成功儲存。
-			- 若輸入不合理數值（如體重 3000kg），系統應即時阻擋並提示。
-		- 測試案例方向：
-			- TC-USR1：輸入正常數值，確認資料庫正確寫入。
-			- TC-USR2：輸入邊界值或錯誤格式，確認錯誤提示訊息正確顯示。
 
-	- 任務 1.5：24–32 小時
-		- 功能目標：設計並實作菜單展示的前端介面，將 AI 生成的推薦結果以視覺化方式呈現，包含圖片、詳細描述與營養標示。
-		- 輸入：
-			- 來自 Task 1.4 的推薦菜單列表（JSON格式）。
-			- 菜餚圖片資源（URL 或 本地快取）。
-		- 處理流程：
-			- 資料解析與渲染：將 JSON 資料轉換為 UI 卡片元件。
-			- 圖片載入優化：實作 Lazy Loading 與錯誤圖檔替換機制。
-			- 互動處理：點擊菜餚可查看詳細食譜或營養細節。
-		- 輸出：
-			- 每日/每週菜單視圖。
-			- 單一菜餚詳情頁面。
-		- 系統整合與品質考量：
-			- 需支援 Task 1.6 的動態更新，當菜單調整時 UI 需即時反應。
-		- 非功能需求：
-			- 效能：列表渲染時間應小於 1 秒。
-		- 驗收標準：
-			- 介面能正確顯示菜餚名稱、熱量與圖片。
-			- 版面在不同螢幕尺寸下（RWD）皆能正常顯示不跑版。
-		- 測試案例方向：
-			- TC-MENU1：驗證長列表滑動順暢度與圖片載入狀況。
-			- TC-MENU2：驗證點擊卡片後跳轉詳情頁的資料正確性。
+```mermaid
+---
+config:
+  layout: dagre
+---
+flowchart TD
+    A[投資者]
+    B[系統管理員]
+    C[系統開發者]
+    D[系統維護者]
+    E[客服人員]
+    F[系統使用者]
+    
+    A -->|提供資金與監督| B
+    B -->|管理與協調| C
+    B -->|管理與協調| D
+    B -->|管理與協調| E
+    C -->|開發系統| G[健康生活管家 App]
+    D -->|維護系統| G
+    E -->|支援服務| F
+    G -->|提供服務| F
+    F -->|使用回饋| E
+    F -->|需求反饋| B
+```
 
-	- 任務 1.8：32–48 小時
-		- 功能目標：設計資料庫 Schema 以儲存飲食紀錄，並開發後端 API 支援新增、查詢、修改與刪除（CRUD）功能，整合來自掃描或手動輸入的數據。
-		- 輸入：
-			- 來自 Task 1.7 (掃描) 或手動輸入的飲食紀錄資料。
-			- 查詢參數（如日期範圍）。
-		- 處理流程：
-			- 資料驗證：確保熱量與營養素數值非負且格式正確。
-			- 交易處理：確保資料寫入的原子性（Atomicity），避免數據不一致。
-			- 索引優化：針對日期與使用者 ID 建立索引以加速查詢。
-		- 輸出：
-			- 資料庫中的持久化紀錄。
-			- API 回傳之 JSON 格式查詢結果。
-		- 系統整合與品質考量：
-			- 資料結構需保留彈性，以支援未來擴充（如新增營養素欄位）。
-		- 非功能需求：
-			- 可靠性：資料遺失率需低於 0.01%。
-			- 查詢效能：讀取單月歷史紀錄需在 200ms 內完成。
-		- 驗收標準：
-			- 能成功儲存一筆完整的飲食紀錄（含圖片連結、熱量、時間）。
-			- 能正確撈取指定日期的所有飲食紀錄並計算當日總熱量。
-		- 測試案例方向：
-			- TC-DB1：並發寫入測試，確保無 Race Condition。
-			- TC-DB2：大量數據查詢測試，驗證索引效能。
-2. **B1243009 陳彥儒**
-	- 任務 1.3：32–48 小時
-    	- 功能目標：建立食物影像辨識與營養對應核心模組如，Backend與API層，負責接收影像訊號，輸出食物標籤並從資料庫檢索對應營養資訊。
-    	- 輸入
-        	- 原始影像資料：來自相機或相簿的圖片，支援 JPG/PNG 格式
-        	- 辨識參數設定：例如信心水準閥值、最大回傳數量。
-        	- 來自健康餐食資料庫的基礎數據：食材名稱、每 100g 營養成分對照表
-      	- 處理流程
-        	- 影像前處理：對輸入影像進行壓縮、裁切或標準化以符合AI模型或API的輸入規格。
-        	- 模型推論/API呼叫：將處理後的影像傳送至AI模型或第三方服務，取得影像中的物體標籤與信心分數。
-        	- 營養資料映射：將AI回傳的標籤對應至內部資料庫的標準名稱，並檢索其單位熱量與營養成分。
-        	- 例外處理：若信心分數低於閥值，標記為無法識別或模糊結果，並回傳候選清單。
-      	- 輸出：
-        	- 以標準化 JSON 結構回傳，包含：
-            	- 辨識結果清單，含食物名稱、信心分數、在圖中的座標Bounding Box。
-            	- 對應的每單位，營養資訊：熱量、蛋白質、脂肪、碳水。
-            	- 狀態碼：成功、無法辨識、伺服器錯誤。
-      	- 系統整合與品質考量：
-        	- 需定義清晰的API介面，供Task 1.7的前端系統呼叫。
-        	- 需建立快取機制，針對常見的食物影像特徵或重複請求進行優化，減少外部API呼叫成本或運算時間。
-      	- 非功能需求（NFR）：
-        	- 效能：影像上傳至回傳結果的API處理時間應在 2 秒內 完成。
-        	- 準確度：針對常見100種食物的測試集，Top-1準確度需達85%以上，Top-3準確度需達95%以上。
-      	- 驗收標準（Acceptance Criteria）：
-        	- 上傳一張清晰的牛肉麵照片，系統能回傳包含牛肉麵標籤及對應熱量數據的JSON。
-        	- 當上傳非食物照片時，系統需回傳 非食物 或 無法辨識 的錯誤代碼，而非隨機猜測。
-        	- API 能夠同時處理單張照片中包含2種以上食物的情況，例如便當中的飯與排骨。
-      	- 測試案例方向：
-        	- TC-IMG1：上傳標準測試圖，預期回傳信心分數>0.9的Apple標籤與對應營養素。
-        	- TC-IMG2：上傳模糊或低光源照片，系統應回傳Top 3可能選項供後續模組使用，而非直接報錯或給出錯誤單一答案。
-	- 任務 1.7：56–80 小時
-    	- 功能目標：開發前端食物掃描辨識系統，整合相機介面、使用者互動流程、份量估算邏輯與營養總量計算，完成從拍照到紀錄的完整體驗。
-    	- 輸入：
-        	- 使用者操作：開啟相機、點擊快門、手動框選範圍、修正辨識結果。
-        	- 使用者份量輸入：選擇單位如：克、碗、份、個與數量。
-        	- 來自Task 1.3的辨識結果與基礎營養資訊。
-    	- 處理流程：
-        	- 相機與互動介面：實作即時預覽、拍照與裁切功能，並處理相機權限請求。
-        	- 結果呈現與修正：
-            	- 接收Task 1.3的回傳值，若信心分數高，直接顯示結果。
-            	- 若為模糊識別，像是信心分數介於閥值邊緣，彈出選擇介面讓使用者確認，例如：「請問這是拿鐵還是卡布奇諾？」。
-            	- 支援使用者手動修正錯誤的辨識結果。
-        	- 精準計算與單位換算：
-            	- 提供單位換算UI，並依據使用者輸入的份量，即時計算該餐點的總熱量與總營養素。
-            	- 資料封裝：將最終確認的食物項目、份量、照片路徑與計算後的營養數據，打包成飲食紀錄格式傳送給Task 1.8儲存。
-      	- 輸出：
-        	- 使用者介面顯示：辨識框、食物標籤、熱量資訊卡片。
-        	- 資料物件：完整的MealRecord物件，包含 timestamp、食物列表、總熱量，準備寫入資料庫。
-      	- 系統整合與品質考量：
-        	- 需處理網路連線不穩時的狀態，例如：拍照後轉圈圈Loading的UI回饋，避免App卡死。
-        	- UI需符合Task 2.3的易用性設計，確保 拍照->確認->儲存 的步驟在3個點擊動作內可完成。
-      	- 非功能需求：
-        	- 反應時間：從使用者按下快門到顯示辨識結果，理想應在3-5秒內完成；若超過5秒需顯示「正在分析中...」的動畫。
-        	- 容錯性：若辨識失敗，必須提供顯眼的手動輸入/搜尋按鈕作為備案，確保使用者流程不中斷。
-        	- 相容性：需適配不同長寬比的手機螢幕，且拍照介面按鈕需考慮單手操作便利性。
-      	- 驗收標準：
-        	- 使用者能順利開啟相機，拍照後顯示正確的食物名稱與預設份量。
-        	- 使用者調整份量時，畫面上的總熱量數值需即時連動更新。
-        	- 針對模糊辨識結果，系統能正確跳出選單供使用者選擇，且選擇後能正確載入該食物的營養資訊。
-        	- 即使在辨識完全錯誤的情況下，使用者也能透過介面上的手動搜尋功能完成該筆飲食紀錄的建立。
-        - 測試案例方向：
-            - TC-SCAN1：拍攝一份雞腿便當，系統框出雞腿與白飯，使用者點擊雞腿確認是炸雞腿，並設定份量為1支，系統計算出正確總熱量。
-            - TC-SCAN2：模擬網路斷線時拍照，系統應提示：無法連接伺服器，請檢查網路或稍後再試，並引導至手動輸入模式。
-            - TC-SCAN3：單位換算測試，確認選擇1杯250ml的牛奶與輸入250g的牛奶，所計算出的熱量結果一致，誤差範圍<5%。
-3. **B1243005 曹哲維**  
-	- 任務 1.4：60–80 小時  
-	  - 功能目標：實作「AI 推薦引擎」核心模組，依照使用者個人健康資料產生每日／每餐的健康菜單建議。  
-	  - 輸入（Input）：  
-	    - 使用者基本資料：年齡、性別、身高、體重、活動量等。  
-	    - 使用者健康目標：例如「減重」、「增肌」、「維持體態」、「控制血糖」。  
-	    - 飲食偏好／限制：例如「低碳水」、「高蛋白」、「素食」、不吃牛／豬等。  
-	    - 過敏史與禁忌食材：例如花生、海鮮、乳製品等。  
-	    - 來自餐食資料庫的餐點資訊：熱量、三大營養素比例、其他營養成分與食材清單。  
-	  - 處理流程（Process）：  
-	    - 根據使用者健康目標與基本資料估算每日建議總熱量與三大營養素分配（蛋白質／脂肪／碳水比例）。  
-	    - 從餐食資料庫中，篩選符合飲食偏好與過敏限制的可用餐點集合。  
-	    - 依照早餐／午餐／晚餐等用餐時段，組合出多組候選菜單，並計算每組菜單的總熱量與營養分布。  
-	    - 根據演算法規則（例如：與目標熱量差距最小、營養分布最接近目標比例、多樣性）排序，選出一組或多組推薦菜單。  
-	  - 輸出（Output）：  
-	    - 以標準化 JSON 結構回傳，包含：  
-	      - 每餐（早餐／午餐／晚餐）的推薦菜單清單。  
-	      - 每道餐點的基本資訊（名稱、圖片 URL、描述）。  
-	      - 每餐與當日的熱量與營養成分總結。  
-	    - 前端可直接使用此輸出渲染菜單畫面與營養資訊。  
-	  - 系統整合與品質考量：  
-	    - 必須與用戶資料模組及餐食資料庫模組完成資料介面設計（API 或函式介面），明確定義欄位格式與錯誤回傳格式。  
-	    - 需保留演算法策略的可擴充性，未來可新增更多健康指標（如血壓、運動量）或替換／增加推薦策略而不影響現有介面。  
-	  - 非功能需求（NFR）：  
-	    - 效能：在一般網路環境與資料量下，單次菜單推薦請求（包含從資料庫取得資料與演算法處理）應在 **3 秒內**完成回應；在極端情境（餐食資料庫較大）不得超過 **5 秒**。  
-	    - 可用性與錯誤處理：當資料不完整（例如缺少活動量或最新體重）時，系統需以預設值或保守估計進行計算，同時回傳可識別的警示碼與對應提示訊息，避免整體推薦流程失敗。  
-	    - 可維護性：演算法核心邏輯需與輸入／輸出介面明確分層，程式碼需具備單元測試覆蓋率（例如：主要計算函式至少 70% 行為被測試），以降低未來調整規則時造成的回歸錯誤。  
-	    - 可追蹤性：對於每次推薦結果，需能在日誌中追蹤主要決策依據（例如：目標熱量、實際菜單熱量、被排除餐點原因），方便後續除錯與調整規則。  
-	  - 驗收標準（Acceptance Criteria）：  
-	    - 使用者設定「減重」目標且輸入完整基本資料時，系統必須產生至少 **一套完整的一日菜單**（含早餐、午餐、晚餐），且該一日菜單的總熱量誤差在建議目標值 ±10% 以內。  
-	    - 推薦菜單中不得包含任何使用者標註的過敏食材或禁忌食材，否則視為測試失敗。  
-	    - 在連續 50 筆推薦請求壓力測試下，至少 95% 的請求回應時間低於 3 秒。  
-	    - 針對同一組輸入資料，多次呼叫推薦 API 應產生「可接受程度的穩定結果」，若演算法有刻意加入隨機性，則變化範圍需在設計文件中有明確說明（例如同類型餐點替換）。  
-	  - 測試案例方向（Examples）：  
-	    - TC-R1：使用者目標「減重」，每日建議 1600 kcal，系統輸出的一日菜單總熱量需落在 1440～1760 kcal 之間，且不含使用者標示過敏食材。  
-	    - TC-R2：使用者選擇「素食」，系統推薦菜單中不得出現肉類或海鮮，若資料庫中無足夠素食餐點，需回傳對應錯誤碼與提示，而不是回傳空白或錯誤格式。  
-	    - TC-R3：模擬缺少體重資訊的狀況，系統應採用預設體重或顯示提示，仍然產生合理菜單，而非直接錯誤中止。  
-	- 任務 1.10：48–64 小時  
-	  - 功能目標：實作「飲食趨勢分析」與「改善建議生成」模組，協助使用者了解長期飲食狀況並獲得具體建議。  
-	  - 輸入（Input）：  
-	    - 使用者飲食紀錄（至少含最近 7～30 天）：每日攝取總熱量、各餐熱量分佈。  
-	    - 每日營養攝取分布：蛋白質／脂肪／碳水比例、蔬菜與水果份量等。  
-	    - 使用者健康目標與基本設定（與任務 1.4 共用）。  
-	  - 藝處理流程（Process）：  
-	    - 對歷史紀錄進行彙整與統計，例如：  
-	      - 每日平均總熱量與與目標熱量的偏差。  
-	      - 各營養素比例是否長期超標或不足。  
-	      - 是否經常在特定時段（例如晚餐）攝取過多熱量。  
-	    - 根據統計結果與預先定義的規則（rule-based engine），判斷需要提醒的項目與建議方向。  
-	    - 產出可重複使用的建議結構（例如：建議類型、對應原因、文字描述），方便日後增加新規則或調整建議內容。  
-	  - 輸出（Output）：  
-	    - 建議結果以結構化資料回傳，包含：  
-	      - 建議類型（例如：減少含糖飲料、增加高纖食物、調整晚餐份量）。  
-	      - 被觸發的原因說明（例如：最近 14 天平均糖分攝取高於建議值 20%）。  
-	      - 可顯示給使用者的建議文字內容。  
-	    - 模組輸出需能與圖表模組（任務 1.9）協作，提供可視化所需的統計數據。  
-	  - 品質與一致性考量：  
-	    - 需確保所有建議均不違反使用者的健康目標，且不包含使用者過敏或禁忌食材相關的建議。  
-	    - 需定義並處理資料不足或異常的情境，例如紀錄天數太少時採用較保守的建議策略，並回傳適當提示。  
-	  - 非功能需求（NFR）：  
-	    - 效能：對最近 **30 天** 紀錄進行分析並產出建議的運算，應在 **2 秒內** 完成；當紀錄天數增加（例如 90 天）時，應透過適當的索引或預先彙總機制維持合理效能。  
-	    - 可用性：在沒有足夠歷史資料（例如小於 3 天）時，模組仍需回傳明確的「資料不足」提示與簡單建議（例如：請持續紀錄至少一週以產生完整分析），而非回傳空集合或錯誤。  
-	    - 可維護性：規則引擎需支援以設定檔或資料表方式新增／調整規則，而不必大量修改程式碼，以降低日後維護成本。  
-	    - 可解釋性：每一則建議都需附帶對應的統計指標（例如：最近 14 天平均糖分攝取值 vs. 建議值），方便在 UI 上向使用者說明原因。  
-	  - 驗收標準（Acceptance Criteria）：  
-	    - 當使用者連續紀錄超過 14 天且有明顯「總熱量超標」情況時，系統必須至少產出一條與總熱量控制相關的建議（例如：減少含糖飲料或宵夜）。  
-	    - 若特定營養素（例如纖維或蔬菜份量）長期低於建議值 20% 以上，系統需產出至少一條與該營養素相關的改善建議。  
-	    - 在處理 30 天完整紀錄時，分析與建議生成流程應在 2 秒以內完成，且不因個別紀錄異常（少數欄位缺失）導致整體失敗。  
-	    - 任何產出的建議內容皆不得建議使用者攝取其過敏或禁忌食材，測試資料若刻意放入此情境，系統必須排除該類建議。  
-	  - 測試案例方向（Examples）：  
-	    - TC-T1：輸入 30 天紀錄，最近 14 天平均總熱量高於建議值 25%，預期系統產生「控制總熱量」相關建議，並附上對應統計數值。  
-	    - TC-T2：刻意將使用者標註為「對花生過敏」，但歷史紀錄中包含多次花生攝取，系統在產生建議時 **不得** 建議增加花生或相關食物，而應傾向提醒「注意過敏食材攝取」。  
-	    - TC-T3：只提供 2 天飲食紀錄，系統需回傳「資料不足」類型的建議或提示，且執行時間仍在可接受範圍內。  
-4. **B1243001 江珩安**
-	- 任務 1.2：40–60 小時
-		- 功能目標：建立一個結構化、可擴展且易於查詢的核心健康餐食資料庫 (Health Meal Database)，作為所有營養計算、食物辨識與記錄功能的基礎數據源。
-			資料庫需滿足高可靠性與一致性的需求，支援多種查詢條件，例如按食材、菜餚名稱、熱量區間或特定營養素（如高蛋白、低碳水）進行檢索。
-		- 輸入：
-			- 數據來源： 來自營養師、公開健康數據集（如 TFDA 台灣食品成分資料庫）、或人工輸入的標準化餐點/食材數據。
-			- 格式要求： 需支援 CSV/JSON 等批次匯入格式，以便於初次建置與後續更新。
-			- 數據類型： 食物名稱、分類標籤、淨重/單位、熱量、六大營養素（蛋白質、脂肪、碳水化合物、膳食纖維、鈉、糖）。
-		- 處理流程：
-			- 數據收集與清洗： 彙整來自不同來源的數據，進行格式化與標準化，確保數據單位（如 g/ml/份）的一致性。
-			- 數據模型設計： 設計資料庫 schema（例如：使用 NoSQL 或關聯式資料庫），包含至少三個核心表格/集合：Ingredients (食材)、Dishes (菜餚/餐點)、NutrientProfiles (營養檔案)，並定義它們之間的關聯。
-			- 資料庫導入與索引建立： 將清洗後的數據導入資料庫，並針對常用的查詢欄位（如食物名稱、ID）建立索引，以優化檢索速度。
-			- 數據完整性檢查： 執行常規檢查，確保所有食物項目都有對應的熱量和營養成分數據，並處理空值或異常值。
-		- 輸出：
-			- API 層面： 提供標準化 RESTful API 介面供其他系統調用，例如 GET /api/v1/food/search?q=牛肉 或 GET /api/v1/food/{id}，回傳 JSON 格式的完整食物與營養資訊。
-			- 資料庫實體： 包含超過 2,000 筆常見食材與 500 筆典型中式/西式餐點數據的資料庫。
-		- 系統整合與品質考量：
-			- 資料同步機制： 需設計定期的數據更新與同步機制，例如每週自動從公開數據源檢查是否有更新。
-			- 易用性： 資料庫欄位名稱應清晰、語義化，以利於 Task 1.3 (AI 辨識模組) 進行標籤映射。
-			- 可擴展性： 資料庫結構需能容納未來增加的微量元素（如維生素、礦物質）或特殊飲食標籤（如素食、生酮）。
-			- 資料庫實體： 包含超過 2,000 筆常見食材與 500 筆典型中式/西式餐點數據的資料庫。
-		- 非功能需求（NFR）：
-			- 可靠性： 資料庫服務的年正常運行時間 (Annual Uptime) 需達 99.9%。
-			- 查詢延遲： 基於名稱的單筆查詢延遲應在 50 毫秒內完成。
-		- 驗收標準（Acceptance Criteria）：
-			- 成功插入 2,500 筆以上結構化數據，且每筆數據至少包含 8 個核心欄位 (名稱、熱量、蛋白質、脂肪、碳水等)。
-			- Task 1.3 能夠透過 API 成功地以食物標籤 (例如 "Chicken Breast") 檢索到對應的營養成分與單位資訊。
-			- 查詢操作能夠支援模糊搜尋 (e.g., 搜尋 '飯' 能同時回傳 '白飯' 和 '炒飯')。
-		- 測試案例方向：
-			- TC-DB1： 查詢一筆標準化食物 ID，驗證回傳的熱量、蛋白質、脂肪、碳水化合物數值與原始數據一致，誤差為 0。
-			- TC-DB2： 執行一次高併發 (例如 100 QPS) 查詢測試，驗證平均查詢延遲是否符合 50ms 的 NFR 要求。
-			- TC-DB3： 嘗試匯入包含缺少蛋白質數據的食材清單，驗證系統是否能正確拒絕該筆或標記為不完整，而非崩潰。
-	- 任務 1.11：32–48 小時
-		- 功能目標：
-			- 開發一個智能購物清單管理系統，能夠根據使用者規劃的餐點（透過 Task 1.2 的資料庫）自動反推所需食材，並透過智能分類與分享功能提升備餐與購物效率。
-		- 輸入：
-			- 餐點規劃清單： 來自使用者的預定菜單 (例如：本週晚餐菜單為 3 次雞肉沙拉、2 次牛肉麵)。
-			- Task 1.2 數據： 菜餚所需的標準食材清單 (Bill of Materials) 與份量資訊。
-			- 使用者偏好： 預設的購物類別定義（例如：{"生鮮": [雞肉, 牛肉, 魚], "蔬果": [蘋果, 菠菜]}）。
-		- 處理流程：
-			- 食材需求彙總： 根據使用者規劃的所有餐點，從 Task 1.2 資料庫中提取所需的食材及其總份量。
-			- 份量單位標準化與加總： 將不同餐點中重複的食材（如麵粉）的份量進行標準化單位換算（例如：從 '份' 換算為 'g'），並進行總量加總。
-			- 智能分類： 應用預設或使用者自定義的類別映射規則，將每個食材項目自動歸類至正確的購物通道/部門（例如：自動分類為 肉類、乳製品、調味料、烘焙用品）。 *
-			- 去重與狀態管理： 移除重複項目，並設計項目的狀態標記（待購/已購/已刪除）。
-			- 清單分享邏輯： 實作基於權限控制的分享機制，允許使用者透過連結或郵件將清單共享給其他帳號，並支援即時同步功能。
-		- 輸出：
-			- 介面顯示： 一份按類別分組、標記總量的購物清單 UI。
-			- API 層面： 提供 POST /api/v1/list/create (自動生成)、GET /api/v1/list/{id} (查詢/同步)、PUT /api/v1/list/{id}/share (分享) 等 API。
-		- 系統整合與品質考量：
-			- 與 Task 1.2 的強依賴： 購物清單的精準度直接依賴於 Task 1.2 數據庫中菜餚食材清單的完整性。
-			- 即時同步： 分享功能需採用 WebSocket 或 Push Notification 機制，確保多用戶同時查看和修改清單時數據能立即同步。
-		- 非功能需求（NFR）：
-			- 生成速度： 針對包含 10 份餐點的清單，從點擊生成到分類完成，反應時間需在 1 秒內。
-			- 同步性： 清單分享後，協作者執行「標記已購」操作後，數據同步延遲需小於 500 毫秒。
-		- 驗收標準（Acceptance Criteria）：
-			- 使用者選取一週餐單後，系統能正確計算出所需食材的總量（例如：雞蛋 12 顆、牛奶 1000 ml），且無遺漏或重複。
-			- 自動生成的清單，95% 的項目能被正確分類到預設的 6 個主要類別中。
-			- 成功共享清單給另一位使用者後，任一方將清單上的牛奶標記為「已購」，另一方的裝置能在 1 秒內看到狀態更新。
-		- 測試案例方向：
-			- TC-LIST1： 輸入包含多個菜餚（例如：煎蛋、蛋糕）的菜單，驗證重複食材（雞蛋）的總量加總與單位換算是否正確。
-			- TC-LIST2： 驗證共享清單功能，兩位使用者同時將清單上的不同項目標記為已購，確保沒有資料衝突或遺失。
-			- TC-LIST3： 測試智能分類邏輯，上傳新食材（例如：鷹嘴豆泥），驗證系統是否能準確將其分類至「罐頭/雜貨」而非「乳製品」。
-5. **B1243018 王翃陞**
-	- 任務 1.6：40–56 小時
-    	- 功能目標：
-        	- 動態適應性： 當使用者更新體重、體脂或更改運動習慣時，系統自動觸發菜單重算機制。
-        	- 無縫更新： 在不影響使用者已確認（已食用）的歷史紀錄前提下，僅更新「未來」的菜單規劃。
-        	- 主動通知： 當菜單發生重大變更時，推播通知告知使用者調整原因（例如：「因您的體重下降，我們已微調您的熱量攝取建議」）。
-      	- 輸入：
-        	- 使用者健康數據變更事件： 新的體重 (kg)、體脂率 (%)、活動量等級 (Activity Level)。
-        	- 使用者目標設定： 目標體重、減重/增重速度 (kg/week)。
-        	- 當前菜單數據： 尚未執行的未來7天菜單規劃 (Meal Plan ID)。
-        	- 食譜資料庫： 包含熱量、營養素標籤的食譜庫存。
-      	- 處理流程：
-        	1. 監聽觸發： 系統後端監聽 User Profile 的 Update 事件。
-        	2. 數值重算：
-           	- 呼叫計算模組，依據新數據重新計算 BMR (基礎代謝率) 與 TDEE。
-           	- 依據使用者目標（如熱量赤字 -300kcal），得出新的「每日建議攝取值」。
-        	3. 差異比對： 檢查新舊數值差異是否超過閾值（例如：差異 > 50kcal 才觸發調整，避免頻繁變動）。
-        	4. 菜單重組：
-           	- 若需調整，鎖定「明日」及之後的日期。
-           	- 演算法根據新的營養素配額，從資料庫篩選適合的食譜組合。
-        	5. 資料庫更新： 將新的食譜 ID 寫入使用者的菜單資料表 (Meal_Plan Table)。
-        	6. 回饋通知： 生成通知訊息傳送給前端顯示。
-        - 輸出：
-            - 更新後的菜單物件： 包含符合新熱量標準的食譜列表。
-            - 變更日誌： 記錄調整的時間點與原因（供系統稽核用）。
-            - 使用者通知： APP 內推播或彈窗訊息。
-	- 任務 1.9：32–40 小時
-    	- 功能目標：
-    		- 多維度數據呈現： 支援「熱量攝取 vs. 消耗」、「三大營養素比例」、「體重變化曲線」等圖表。
-    		- 時間區間切換： 使用者可切換檢視 週、月、年 視圖。
-    		- 趨勢分析： 在圖表中標示「目標線」，讓使用者一眼看出是否達標。
-    		- 互動性： 點擊圖表上的特定數據點，可顯示當日的詳細數值。
-    	- 輸入：
-          	- 飲食日誌數據： 每日實際攝取的食物紀錄與營養素總和。
-          	- 健康測量數據： 每日記錄的體重、體脂數據。
-          	- 時間參數： 使用者選擇的開始日期與結束日期。
-          	- 基準目標值： 該時期的每日建議攝取量。
-    	- 處理流程：
-          1. 請求接收： 前端發送圖表請求，包含圖表類型（如：熱量趨勢）與時間範圍（如：最近 30 天）。
-          2. 數據聚合： 後端查詢資料庫，撈取該區間內的所有 Log。
-          進行數據分組與加總（Group by Date），處理缺失值（Null Handling，例如某天未紀錄則補 0 或插值）。
-          3. 格式轉換： 將原始數據轉換為前端圖表庫（如 Chart.js, D3.js 或 MPAndroidChart）所需的 JSON 格式。
-          4. 基準線疊加： 將使用者的「目標值」作為另一條數據線疊加，以便對照。
-          5. 前端渲染： 前端接收數據並繪製圖表，同時計算並顯示統計摘要（如：平均熱量）。
-    	- 輸出：
-        	- 視覺化圖表元件： 折線圖、長條圖、圓餅圖。
-        	- 統計摘要： 該區間的平均攝取量、總達標天數、最高/最低紀錄。
+- **團隊成員與任務分工**
+  - B1243017 吳彥廷
+  - B1243009 陳彥儒
+  - B1243005 曹哲維
+  - B1243001 江珩安
+  - B1243018 王翃陞
+
+## 9. Risk Analysis
+
+- 模型準確率不足影響推薦品質（緩解：持續擴建資料集與標註與 A/B 測試）
+- OCR/NLP 在包裝標示不一致時錯誤率高（緩解：規則校正與增加人為審核介面）
+- 電商 API 變更導致整合失效（緩解：API 版本化與回退機制）
+- 隱私與法規風險（緩解：資料最小化、加密、合規審查）
+- 系統高峰期性能瓶頸（緩解：水平擴展、快取、異步化）
+
+## 10. Deployment & Operations
+
+- 部署：容器化（Docker）、Kubernetes、分環境（Dev/Staging/Prod）
+- 配置：集中化設定（ConfigMap/Secrets）、版本控管
+- 監控：APM、指標、日誌；異常自動告警
+- 災難復原：多區域備援、每日備份、RTO/RPO 目標
+- 滾動更新；回滾機制
+
+## 11. Appendices
+
+- API 範例
+  - 建立使用者偏好
+    - POST /api/v1/users/{id}/preferences  
+      請求：
+
+      ```json
+      {
+        "diet_type": "low_carb",
+        "cuisine_prefs": ["japanese", "mediterranean"],
+        "notification_settings": {"meal_reminder": true}
+      }
+      ```
+
+      回應：
+
+      ```json
+      {"status":"ok","updated":true}
+      ```
+
+  - 生成週菜單
+    - POST /api/v1/menus/generate  
+      請求：
+
+      ```json
+      {"user_id":123,"week":"2025-W01","constraints":{"allergies":["peanut"],"budget":50}}
+      ```
+
+      回應：
+
+      ```json
+      {"menu_id":456,"total_calories":14000,"macro_ratio":{"carb":0.45,"protein":0.25,"fat":0.30}}
+      ```
